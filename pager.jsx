@@ -143,7 +143,7 @@ class Pager extends Component {
     let totalPages = this.getTotPageNum();
     let pageItemArr = [];
     let prevDisplay = 1 === this.state.curPageIndex ? 'disabled':'';
-    let lastDisplay = totalPages == this.state.curPageIndex ? 'disabled':'';
+    let lastDisplay = totalPages === this.state.curPageIndex ? 'disabled':'';
 
     let arr = this.getPagesArr(totalPages);
 
@@ -163,7 +163,7 @@ class Pager extends Component {
             Key : arr[i],
             Text :  arr[i],
             Index : arr[i],
-            ClassName : arr[i] == this.state.curPageIndex ? 'active':''
+            ClassName : arr[i] === this.state.curPageIndex ? 'active':''
           })
         );
       } else {
