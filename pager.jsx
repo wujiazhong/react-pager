@@ -3,6 +3,7 @@ import React, {
   PropTypes
 } from 'react';
 import ReactDOM from 'react-dom';
+import {GlobalAlert} from '../alert-global.jsx';
 
 var PagerItem = React.createClass({
   clickEvent: function(){
@@ -11,7 +12,7 @@ var PagerItem = React.createClass({
   render: function() {
     return (
       <li className={this.props.className} onClick={this.clickEvent}>
-          <a href="javascript:void(0)">{this.props.text}</a>
+        <a href="javascript:void(0)">{this.props.text}</a>
       </li>
     );
   }
@@ -26,14 +27,17 @@ const Ellipsis = React.createClass({
 });
 
 const propTypes = {
-  pageShowNum: PropTypes.number,
+  showItemNum: PropTypes.number,
   prevText: PropTypes.string,
   nextText: PropTypes.string,
-  btnWidth: PropTypes.number
+  btnWidth: PropTypes.number,
+  totalCount: PropTypes.number.isRequired,
+  pageSize: PropTypes.number.isRequired,
+  pagerCallBack: PropTypes.func.isRequired
 };
 
 const defaultProps = {
-  pageShowNum: 7,
+  showItemNum: 7, // should be more than 7
   prevText: "<",
   nextText: ">",
   btnWidth:50
@@ -64,9 +68,11 @@ class Pager extends Component {
     var val = parseInt(e.target.value);
     var inputVal = '';
     if (!isNaN(val) && val>0) {
-        inputVal = Math.min(val, this.getTotPageNum()) + '';
+      inputVal = Math.min(val, this.getTotPageNum()) + '';
+      this.setState({inputPageIndex: inputVal});
+    } else {
+      GlobalAlert.error("Check your input number. It should be an integer less than " + this.getTotPageNum());
     }
-    this.setState({inputPageIndex: inputVal});
   }
 
   onGoClicked() {
@@ -80,33 +86,50 @@ class Pager extends Component {
     return Math.ceil(this.props.totalCount / this.props.pageSize);
   }
 
-  getPagesArr(pageNum) {
+  // e.g. totalPages = 30, showItemNum = 7
+  getPagesArr(totalPages) {
     let arr = [];
-    if (pageNum <=7) {
-      for (var i=1; i<=pageNum; i++) {
+    // totalPages <= this.state.showItemNum
+    // show all: < 1 2 3 4 5 6 7 >
+    if (totalPages <= this.props.showItemNum) {
+      for (var i=1; i<=totalPages; i++) {
         arr.push(i);
       }
     } else {
-      if (this.state.curPageIndex <= 4 ) {
-        for (var i=1; i<=5; i++) {
+      let leftEnd = this.props.showItemNum - 3;
+      let rightStart = totalPages - (this.props.showItemNum - 4);
+      // curPageIndex <= showItemNum - 3
+      // left: < 1 2 3 4 5 ... 30 >
+      if (this.state.curPageIndex <= leftEnd) {
+        for (var i=1; i<=leftEnd + 1; i++) {
           arr.push(i);
         }
         arr.push(-1);
-        arr.push(pageNum);
-      } else if (this.state.curPageIndex <= pageNum && this.state.curPageIndex >= pageNum - 3) {
+        arr.push(totalPages);
+      }
+      // curPageIndex <= totalPages && curPageIndex >= totalPages - 3
+      // right: < 1 ... 26 27 28 29 30 >
+      else if (this.state.curPageIndex <= totalPages && this.state.curPageIndex >= rightStart) {
         arr.push(1);
         arr.push(-1);
-        for (var i=pageNum - 4; i<=pageNum; i++) {
+        for (var i=rightStart - 1; i<=totalPages; i++) {
           arr.push(i);
         }
-      } else {
+      }
+      // middle: < 1 ... 26 27 28 ... 30 >
+      else {
+        var midItemNum = this.props.showItemNum - 4;
         arr.push(1);
         arr.push(-1);
-        arr.push(this.state.curPageIndex - 1);
-        arr.push(this.state.curPageIndex);
-        arr.push(this.state.curPageIndex + 1);
+
+        var startPos = this.state.curPageIndex - Math.floor(midItemNum / 2);
+        var i = 0;
+        for (i=0; i<midItemNum; i++) {
+          arr.push(startPos + i);
+        }
+
         arr.push(-1);
-        arr.push(pageNum);
+        arr.push(totalPages);
       }
 
     }
@@ -160,7 +183,7 @@ class Pager extends Component {
         <div className="input-group" style={{display:'inline-block',float:'left', marginLeft:5}}>
           <input type="text" className="form-control" value={this.state.inputPageIndex} onChange={this.inputIndexChanged} style={{width:this.props.btnWidth}} />
           <span className="input-group-btn" style={{display:'inline-block'}}>
-              <button className="btn btn-default" onClick={this.onGoClicked} type="button">Go</button>
+            <button className="btn btn-default" onClick={this.onGoClicked} type="button">Go</button>
           </span>
         </div>
       </li>
