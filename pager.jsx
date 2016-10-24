@@ -67,12 +67,14 @@ class Pager extends Component {
   inputIndexChanged(e) {
     var val = parseInt(e.target.value);
     var inputVal = '';
-    if (!isNaN(val) && val>0) {
-      inputVal = Math.min(val, this.getTotPageNum()) + '';
-      this.setState({inputPageIndex: inputVal});
+
+    if (isNaN(val)) {
+      inputVal = '';
     } else {
-      GlobalAlert.error("Check your input number. It should be an integer less than " + this.getTotPageNum());
+      inputVal = Math.min(val, this.getTotPageNum()) + '';
     }
+
+    this.setState({inputPageIndex: inputVal});
   }
 
   onGoClicked() {
@@ -107,7 +109,7 @@ class Pager extends Component {
         arr.push(-1);
         arr.push(totalPages);
       }
-      // curPageIndex <= totalPages && curPageIndex >= totalPages - 3
+      // curPageIndex <= totalPages && curPageIndex >= totalPages - (showItemNum - 4)
       // right: < 1 ... 26 27 28 29 30 >
       else if (this.state.curPageIndex <= totalPages && this.state.curPageIndex >= rightStart) {
         arr.push(1);
